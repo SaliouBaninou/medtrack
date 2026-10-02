@@ -3,9 +3,10 @@ import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import { allowedOrigins } from "./utils/constants.js";
-import { toNodeHandler } from "better-auth/node";
+import { fromNodeHeaders, toNodeHandler } from "better-auth/node";
+import { requireAuthentication } from "./middleware/authentication.js";
 import { auth } from "./lib/auth.js";
-import routes from "./router";
+import routes from "./router/index.js";
 const app = express();
 const port = process.env.PORT || 3001;
 
@@ -68,4 +69,14 @@ app.get("/fake-login", async (req, res) => {
     });
   }
 });
+
+
+app.get("/api/me", requireAuthentication, (req, res) => {
+  return res.json({
+    success: true,
+    user: res.locals.user,
+    session: res.locals.session,
+  });
+});
+
 app.listen(port, () => console.log(`Server demarer localhost:${port}`));

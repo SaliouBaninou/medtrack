@@ -1,0 +1,1 @@
+ALTER TABLE "etablissement" DROP CONSTRAINT "etablissement_user_id_user_id_fkey", ADD CONSTRAINT "etablissement_user_id_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE CASCADE;

@@ -6,13 +6,14 @@ import {
   index,
   varchar,
 } from "drizzle-orm/pg-core";
-import { timestamps } from "./columns.helpers";
+import { timestamps } from "./columns.helpers.js";
 import { randomUUID } from "node:crypto";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
+  role: text("role"),
   emailVerified: boolean("email_verified").default(false).notNull(),
   image: text("image"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -20,7 +21,6 @@ export const user = pgTable("user", {
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
-  role: text("role"),
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
@@ -99,7 +99,7 @@ export const etablissement = pgTable("etablissement", {
   logo: text("logo").$default(() => "https://via.placeholder.com/150"),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "set null" }),
+    .references(() => user.id, { onDelete: "cascade" }),
   ...timestamps,
 });
 
