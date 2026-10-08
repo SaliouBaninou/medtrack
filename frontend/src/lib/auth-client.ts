@@ -1,5 +1,26 @@
-import { createAuthClient } from "better-auth/react"
+import { createAuthClient } from "better-auth/react";
+import { adminClient } from "better-auth/client/plugins";
+
+import {
+  accessControl,
+  superadminRole,
+  adminRole,
+  patientRole,
+  medecinRole,
+} from "./permissions";
+
 export const authClient = createAuthClient({
-    /** The base URL of the server (optional if you're using the same domain) */
-    baseURL: import.meta.env.VITE_BETTER_AUTH_URL
-})
+  baseURL: import.meta.env.VITE_BETTER_AUTH_URL,
+
+  plugins: [
+    adminClient({
+      ac: accessControl,
+      roles: {
+        superadmin: superadminRole,
+        admin: adminRole,
+        patient: patientRole,
+        medecin: medecinRole,
+      },
+    }),
+  ],
+});
