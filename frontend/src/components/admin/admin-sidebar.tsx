@@ -25,9 +25,11 @@ import {
   FileIcon,
   HospitalIcon,
   HeartPulseIcon,
+  UserRoundIcon,
 } from "lucide-react"
 import { NavStructures } from "./nav-structures"
 import { NavLink } from "react-router"
+import { authClient } from "@/lib/auth-client"
 
 const data = {
   navMain: [
@@ -55,6 +57,11 @@ const data = {
       title: "Équipes médicales",
       url: "#",
       icon: <UsersIcon />,
+    },
+    {
+      title: "Patients",
+      url: "/admin/patients",
+      icon: <UserRoundIcon />,
     },
   ],
   navSecondary: [
@@ -94,6 +101,17 @@ const data = {
 }
 
 export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = authClient.useSession()
+  const roles = String(session?.user.role ?? "").split(",").map((role) => role.trim())
+  const navMain = data.navMain
+    .map((item) => item.title === "Équipes médicales"
+      ? { ...item, title: "Médecins", url: "/admin/medecins" }
+      : item)
+    .filter((item) => item.title !== "Médecins" || roles.includes("admin"))
+  const structures = roles.includes("superadmin")
+    ? data.structures
+    : data.structures.filter((item) => item.name !== "Établissements")
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -115,8 +133,8 @@ export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>)
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavStructures items={data.structures} />
+        <NavMain items={navMain} />
+        <NavStructures items={structures} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

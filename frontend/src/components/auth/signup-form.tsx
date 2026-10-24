@@ -21,7 +21,6 @@ import {
 import { cn } from "cn"
 import { toast } from "sonner"
 import { Spinner } from "../ui/spinner"
-import { startDemoOtp } from "@/lib/demo-auth"
 
 export function SignupForm({
   className,
@@ -51,7 +50,6 @@ export function SignupForm({
           description: "Votre compte a été créé. Vérifiez maintenant votre adresse e-mail.",
         })
         form.reset()
-        startDemoOtp(loginData.email, "verification")
         navigate(`/auth/verifier-code?email=${encodeURIComponent(loginData.email)}&purpose=verification`, { replace: true })
       },
       onError: (ctx) => {

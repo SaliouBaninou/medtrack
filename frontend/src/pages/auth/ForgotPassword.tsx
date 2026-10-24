@@ -7,21 +7,25 @@ import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { startDemoOtp } from "@/lib/demo-auth"
+import { authClient } from "@/lib/auth-client"
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setIsSubmitting(true)
     const normalizedEmail = email.trim().toLowerCase()
-    startDemoOtp(normalizedEmail, "password-reset")
-    toast.success("Code de démonstration généré", { description: "Un code de vérification est prêt pour cette adresse." })
-    navigate(`/auth/verifier-code?email=${encodeURIComponent(normalizedEmail)}&purpose=password-reset`)
+    const { error } = await authClient.emailOtp.requestPasswordReset({ email: normalizedEmail })
     setIsSubmitting(false)
+    if (error) {
+      toast.error("Demande impossible", { description: error.message })
+      return
+    }
+    toast.success("E-mail envoyé", { description: "Si un compte correspond à cette adresse, un code de réinitialisation vous sera envoyé." })
+    navigate(`/auth/nouveau-mot-de-passe?email=${encodeURIComponent(normalizedEmail)}`)
   }
 
   return (
@@ -33,7 +37,7 @@ export default function ForgotPassword() {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Saisissez l’adresse liée à votre compte. Vous recevrez un code pour continuer.</p>
         </div>
         <div className="space-y-2"><Label htmlFor="forgot-email">Adresse e-mail</Label><Input id="forgot-email" type="email" autoComplete="email" placeholder="vous@exemple.com" value={email} onChange={(event) => setEmail(event.target.value)} required /></div>
-        <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-3 text-xs leading-5 text-teal-900"><strong>Mode démonstration :</strong> le code simulé sera affiché à l’étape suivante. Aucun e-mail ne sera envoyé.</div>
+        <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-3 text-xs leading-5 text-teal-900">Un code à usage unique sera envoyé à cette adresse. Il est valable 10 minutes.</div>
         <Button type="submit" className="h-10 w-full" disabled={isSubmitting}>{isSubmitting ? "Préparation…" : <>Continuer <Send /></>}</Button>
         <Link to="/auth/sign-in" className="mx-auto flex w-fit items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" /> Retour à la connexion</Link>
       </form>

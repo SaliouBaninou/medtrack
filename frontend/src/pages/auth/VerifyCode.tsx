@@ -7,34 +7,30 @@ import { AuthLayout } from "@/components/auth/auth-layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { startDemoOtp, verifyDemoOtp, type DemoOtpPurpose } from "@/lib/demo-auth"
+import { authClient } from "@/lib/auth-client"
 
 export default function VerifyCode() {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const email = params.get("email") ?? ""
-  const purpose: DemoOtpPurpose = params.get("purpose") === "verification" ? "verification" : "password-reset"
   const [code, setCode] = useState("")
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const result = verifyDemoOtp(email, code, purpose)
-    if (!result.ok) {
-      toast.error("Code invalide", { description: result.reason })
+    const { error } = await authClient.emailOtp.verifyEmail({ email, otp: code })
+    if (error) {
+      toast.error("Code invalide", { description: error.message })
       return
     }
-    if (purpose === "verification") {
-      toast.success("Adresse confirmée (démo)", { description: "La simulation de vérification est terminée." })
-      navigate("/auth/sign-in", { replace: true })
-    } else {
-      navigate(`/auth/nouveau-mot-de-passe?email=${encodeURIComponent(email)}`)
-    }
+    toast.success("Adresse confirmée", { description: "Votre adresse e-mail est vérifiée." })
+    navigate("/auth/sign-in", { replace: true })
   }
 
-  function resendCode() {
+  async function resendCode() {
     if (!email) return
-    startDemoOtp(email, purpose)
-    toast.success("Nouveau code généré", { description: "Utilisez le code de démonstration affiché ci-dessous." })
+    const { error } = await authClient.emailOtp.sendVerificationOtp({ email, type: "email-verification" })
+    if (error) toast.error("Envoi impossible", { description: error.message })
+    else toast.success("Nouveau code envoyé", { description: "Vérifiez votre boîte de réception." })
   }
 
   return (
@@ -46,10 +42,10 @@ export default function VerifyCode() {
           <p className="mt-2 text-sm leading-6 text-muted-foreground">Entrez le code à 6 chiffres pour <span className="font-medium text-foreground">{email || "votre adresse e-mail"}</span>.</p>
         </div>
         <div className="space-y-2"><Label htmlFor="otp-code">Code de vérification</Label><Input id="otp-code" inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" placeholder="000000" className="h-12 text-center text-xl tracking-[0.45em]" value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} required /></div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><p className="text-xs font-medium uppercase tracking-wide text-amber-800">Code de démonstration</p><p className="mt-1 font-mono text-xl font-bold tracking-[0.25em]">246810</p><p className="mt-1 text-xs text-amber-800">Valable 10 minutes · aucun e-mail réel n’est envoyé.</p></div>
+        <p className="text-xs text-muted-foreground">Le code envoyé par e-mail est valable 10 minutes.</p>
         <Button type="submit" className="h-10 w-full" disabled={code.length !== 6}>Vérifier le code</Button>
         <button type="button" onClick={resendCode} className="mx-auto flex items-center gap-2 text-sm font-medium text-primary hover:underline"><RefreshCw className="size-3.5" /> Générer un nouveau code</button>
-        <Link to={purpose === "verification" ? "/auth/sign-up" : "/auth/mot-de-passe-oublie"} className="mx-auto flex w-fit items-center gap-2 text-sm text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" /> Retour</Link>
+        <Link to="/auth/sign-up" className="mx-auto flex w-fit items-center gap-2 text-sm text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4" /> Retour à l’inscription</Link>
       </form>
     </AuthLayout>
   )

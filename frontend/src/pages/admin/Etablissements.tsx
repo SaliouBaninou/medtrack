@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import { useQueryState, parseAsString, parseAsInteger, parseAsStringEnum } from "nuqs"
+import { useNavigate } from "react-router"
 import {
   Plus,
   Eye,
@@ -400,6 +401,7 @@ function EtablissementForm({
 // Composant Principal de la Page Etablissements
 // =========================================================
 export default function Etablissements() {
+  const navigate = useNavigate()
   // ---- État d'URL synchronisé via nuqs ----
   const [search, setSearch] = useQueryState(
     "search",
@@ -510,6 +512,10 @@ export default function Etablissements() {
   const handleOpenDetail = (item: Etablissement) => {
     setSelectedItem(item)
     setIsDetailOpen(true)
+  }
+
+  const handleOpenAdmins = (item: Etablissement) => {
+    navigate(`/admin/etablissements/${item.id}/admins`)
   }
 
   const handleOpenEdit = (item: Etablissement) => {
@@ -861,7 +867,7 @@ export default function Etablissements() {
                               <div className="min-w-0 max-w-[240px]">
                                 <button
                                   type="button"
-                                  onClick={() => handleOpenDetail(item)}
+                                  onClick={() => handleOpenAdmins(item)}
                                   className="font-semibold text-sm text-foreground hover:text-primary transition-colors text-left block truncate"
                                   title={item.name}
                                 >

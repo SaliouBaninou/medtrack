@@ -33,12 +33,16 @@ function getInitials(name: string): string {
 
 export function NavUser({
   user: initialUser,
+  profileUrl = "/admin/profil",
+  profileLabel = "Mon profil",
 }: {
   user?: {
     name: string
     email: string
     avatar?: string
   }
+  profileUrl?: string
+  profileLabel?: string
 }) {
   const { data: session } = authClient.useSession()
   const navigate = useNavigate()
@@ -133,9 +137,9 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer gap-2 text-xs" onClick={() => navigate("/admin/profil")}>
+              <DropdownMenuItem className="cursor-pointer gap-2 text-xs" onClick={() => navigate(profileUrl)}>
                 <CircleUserRoundIcon className="size-4 text-muted-foreground" />
-                Mon profil
+                {profileLabel}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer gap-2 text-xs">
                 <BellIcon className="size-4 text-muted-foreground" />

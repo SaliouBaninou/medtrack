@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import { adminClient } from "better-auth/client/plugins";
+import { adminClient, emailOTPClient } from "better-auth/client/plugins";
 
 import {
   accessControl,
@@ -13,6 +13,7 @@ export const authClient = createAuthClient({
   baseURL: import.meta.env.VITE_BETTER_AUTH_URL,
 
   plugins: [
+    emailOTPClient(),
     adminClient({
       ac: accessControl,
       roles: {
