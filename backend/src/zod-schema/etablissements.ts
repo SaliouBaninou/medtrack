@@ -1,4 +1,9 @@
+
 import z from "zod";
+
+// ===============================
+// SCHÉMAS RÉUTILISABLES
+// ===============================
 
 const nameSchema = z
   .string()
@@ -30,6 +35,10 @@ const addressSchema = z
 
 const logoSchema = z.string().trim().url({ message: "L'URL du logo n'est pas valide" }).nullable();
 
+// ===============================
+// CREATE ETABLISSEMENT
+// ===============================
+
 export const createEtablissementSchema = z.object({
   name: nameSchema,
   email: emailSchema,
@@ -38,21 +47,37 @@ export const createEtablissementSchema = z.object({
   logo: logoSchema.optional(),
 });
 
+// ===============================
+// UPDATE ETABLISSEMENT
+// ===============================
+
 export const updateEtablissementSchema = createEtablissementSchema
   .partial()
   .refine((data) => Object.keys(data).length > 0, {
     message: "Au moins un champ doit être renseigné pour la mise à jour",
   });
 
+// ===============================
+// ETABLISSEMENT ID
+// ===============================
+
 export const etablissementIdSchema = z.object({
   id: z.string().trim().min(1, "L'identifiant est requis"),
 });
+
+// ===============================
+// ETABLISSEMENT FILTER
+// ===============================
 
 export const etablissementFilterSchema = z.object({
   page: z.coerce.number().int().min(1, "La page doit être supérieure ou égale à 1").default(1),
   limit: z.coerce.number().int().min(1, "La limite doit être supérieure ou égale à 1").max(100, "La limite ne peut pas dépasser 100").default(20),
   search: z.string().trim().max(255, "La recherche ne peut pas dépasser 255 caractères").optional(),
 }).strict();
+
+// ===============================
+// TYPES TYPESCRIPT
+// ===============================
 
 export type CreateEtablissementInput = z.infer<typeof createEtablissementSchema>;
 export type UpdateEtablissementInput = z.infer<typeof updateEtablissementSchema>;

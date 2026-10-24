@@ -1,5 +1,8 @@
 import { Router } from "express";
 import etablissementRouter from "./etablissements.js";
+import patientRouter from "./patients.js";
+import hospitalAdminRouter from "./hospital-admins.js";
+import doctorRouter from "./doctors.js";
 
 const router = Router();
 
@@ -25,8 +28,8 @@ router.use(etablissementRouter);
  *                   type: string
  *                   example: "Bonjour"
  */
-router.get("/", (req, res) => {
-  res.status(200).json({ sa: "Bonjour" });
-});
+router.use(patientRouter);
+router.use(hospitalAdminRouter);
+router.use(doctorRouter);
 
 export default router;

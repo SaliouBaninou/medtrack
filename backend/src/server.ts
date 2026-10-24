@@ -28,10 +28,28 @@ app.use(morgan("dev"));
 app.use(
   cors({
     origin: ["http://localhost:3000", "http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   }),
 );
+// Seuls les superadmins peuvent appeler directement l'endpoint Better Auth set-role.
+// Les comptes admin disposent de cette permission uniquement pour les créations de médecins
+// validées et limitées à leur établissement par les routes métier.
+app.all("/api/auth/admin/set-role", requireAuthentication, (req, res, next) => {
+  const roles = String(res.locals.user?.role ?? "").split(",").map((role) => role.trim());
+  if (roles.includes("superadmin")) return next();
+  return res.status(403).json({ success: false, message: "Cette opération est réservée au superadmin." });
+}, toNodeHandler(auth));
+app.all("/api/auth/admin/ban-user", requireAuthentication, (req, res, next) => {
+  const roles = String(res.locals.user?.role ?? "").split(",").map((role) => role.trim());
+  if (roles.includes("superadmin")) return next();
+  return res.status(403).json({ success: false, message: "Cette opération est réservée au superadmin." });
+}, toNodeHandler(auth));
+app.all("/api/auth/admin/unban-user", requireAuthentication, (req, res, next) => {
+  const roles = String(res.locals.user?.role ?? "").split(",").map((role) => role.trim());
+  if (roles.includes("superadmin")) return next();
+  return res.status(403).json({ success: false, message: "Cette opération est réservée au superadmin." });
+}, toNodeHandler(auth));
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
 app.use("/api", routes);

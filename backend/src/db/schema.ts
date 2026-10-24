@@ -5,6 +5,7 @@ import {
   boolean,
   index,
   varchar,
+  date,
 } from "drizzle-orm/pg-core";
 import { timestamps } from "./columns.helpers.js";
 import { randomUUID } from "node:crypto";
@@ -103,6 +104,80 @@ export const etablissement = pgTable("etablissement", {
   ...timestamps,
 });
 
+/** Profil d'administration rattaché à un compte et à un établissement. */
+export const hospitalAdmin = pgTable(
+  "hospital_admin",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    etablissementId: text("etablissement_id")
+      .notNull()
+      .references(() => etablissement.id, { onDelete: "cascade" }),
+    profession: varchar("profession", { length: 50 }).notNull(),
+    telephone: varchar("telephone", { length: 15 }).notNull(),
+    previousRole: text("previous_role").notNull().default("patient"),
+    ...timestamps,
+  },
+  (table) => [index("hospital_admin_etablissementId_idx").on(table.etablissementId)],
+);
+
+/** Profil médical rattaché à un compte Better Auth et à son établissement. */
+export const doctor = pgTable(
+  "doctor",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    specialty: varchar("specialty", { length: 100 }).notNull(),
+    department: varchar("department", { length: 100 }).notNull(),
+    professionalId: varchar("professional_id", { length: 100 }).unique(),
+    phone: varchar("phone", { length: 20 }),
+    status: varchar("status", { length: 20 }).notNull().default("active"),
+    etablissementId: text("etablissement_id")
+      .notNull()
+      .references(() => etablissement.id, { onDelete: "cascade" }),
+    previousRole: text("previous_role").notNull().default("patient"),
+    ...timestamps,
+  },
+  (table) => [index("doctor_etablissementId_idx").on(table.etablissementId)],
+);
+
+/** Profil complémentaire rattaché à un compte Better Auth. */
+export const patient = pgTable(
+  "patient",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .unique()
+      .references(() => user.id, { onDelete: "cascade" }),
+    dateOfBirth: date("date_of_birth", { mode: "string" }).notNull(),
+    placeOfBirth: varchar("place_of_birth", { length: 255 }).notNull(),
+    residence: varchar("residence", { length: 255 }).notNull(),
+    phone: varchar("phone", { length: 20 }).notNull(),
+    situation: varchar("situation", { length: 20 }).notNull(),
+    profession: varchar("profession", { length: 100 }).notNull(),
+    gender: varchar("gender", { length: 20 }).notNull(),
+    etablissementId: text("etablissement_id").references(() => etablissement.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (table) => [
+    index("patient_userId_idx").on(table.userId),
+    index("patient_etablissementId_idx").on(table.etablissementId),
+  ],
+);
+
 // Export the schema as a default export
 
 export default {
@@ -111,4 +186,7 @@ export default {
   account,
   verification,
   etablissement,
+  hospitalAdmin,
+  doctor,
+  patient,
 };

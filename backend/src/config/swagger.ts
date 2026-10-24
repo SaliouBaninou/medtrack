@@ -39,6 +39,10 @@ Vous pouvez vous authentifier via :
         description: "Gestion des établissements de santé (hôpitaux, cliniques, centres de soins)",
       },
       {
+        name: "Patients",
+        description: "Création et gestion des profils patients",
+      },
+      {
         name: "Authentification",
         description: "Endpoints d'authentification et gestion de session (Better Auth)",
       },
@@ -71,6 +75,97 @@ Vous pouvez vous authentifier via :
         },
       },
       schemas: {
+        Patient:
+          {
+            type: "object",
+            properties: {
+              id: { type: "string", description: "Identifiant du profil patient", example: "a6f20281-fd5a-46af-a8f4-b441abbb198a" },
+              userId: { type: "string", description: "Identifiant du compte associé", example: "usr_abc123456" },
+              dateOfBirth: { type: "string", format: "date", example: "1990-04-23" },
+              placeOfBirth: { type: "string", maxLength: 255, example: "Libreville" },
+              residence: { type: "string", maxLength: 255, example: "Quartier Louis, Libreville" },
+              phone: { type: "string", minLength: 8, maxLength: 20, example: "+241 06 12 34 56" },
+              situation: { type: "string", enum: ["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)"], example: "Célibataire" },
+              profession: { type: "string", maxLength: 100, example: "Enseignant" },
+              gender: { type: "string", enum: ["Masculin", "Féminin"], example: "Féminin" },
+              updated_at: { type: "string", format: "date-time", nullable: true },
+              created_at: { type: "string", format: "date-time", example: "2026-10-14T10:00:00.000Z" },
+              deleted_at: { type: "string", format: "date-time", nullable: true },
+            },
+            required: ["id", "userId", "dateOfBirth", "placeOfBirth", "residence", "phone", "situation", "profession", "gender", "created_at"],
+          },
+        CreateHospitalAdminInput: {
+          type: "object",
+          required: ["profession", "telephone", "userId", "etablissementId"],
+          properties: {
+            profession: { type: "string", minLength: 5, maxLength: 50, example: "Administration hospitalière" },
+            telephone: { type: "string", minLength: 8, maxLength: 15, pattern: "^\\+?\\d+$", example: "+24106123456" },
+            userId: { type: "string", description: "Identifiant d'un compte déjà créé", example: "usr_abc123456" },
+            etablissementId: { type: "string", description: "Identifiant de l'établissement", example: "123e4567-e89b-12d3-a456-426614174000" },
+          },
+        },
+        CreatePatientInput: {
+          type: "object",
+          required: ["dateOfBirth", "placeOfBirth", "residence", "phone", "situation", "profession", "gender"],
+          properties: {
+            dateOfBirth: { type: "string", format: "date", description: "Date de naissance au format AAAA-MM-JJ, non future", example: "1990-04-23" },
+            placeOfBirth: { type: "string", minLength: 2, maxLength: 255, example: "Libreville" },
+            residence: { type: "string", minLength: 5, maxLength: 255, example: "Quartier Louis, Libreville" },
+            phone: { type: "string", minLength: 8, maxLength: 20, example: "+241 06 12 34 56" },
+            situation: { type: "string", enum: ["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)"], example: "Célibataire" },
+            profession: { type: "string", minLength: 2, maxLength: 100, example: "Enseignant" },
+            gender: { type: "string", enum: ["Masculin", "Féminin"], example: "Féminin" },
+          },
+        },
+        UpdatePatientInput: {
+          type: "object",
+          description: "Champs modifiables du profil. Au moins un champ doit être fourni.",
+          properties: {
+            dateOfBirth: { type: "string", format: "date", example: "1990-04-23" },
+            placeOfBirth: { type: "string", minLength: 2, maxLength: 255, example: "Port-Gentil" },
+            residence: { type: "string", minLength: 5, maxLength: 255, example: "Akanda, Libreville" },
+            phone: { type: "string", minLength: 8, maxLength: 20, example: "+241 06 12 34 56" },
+            situation: { type: "string", enum: ["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)"] },
+            profession: { type: "string", minLength: 2, maxLength: 100, example: "Médecin" },
+            gender: { type: "string", enum: ["Masculin", "Féminin"] },
+          },
+        },
+        SinglePatientResponse: {
+          type: "object",
+          properties: { success: { type: "boolean", example: true }, patient: { $ref: "#/components/schemas/Patient" } },
+          required: ["success", "patient"],
+        },
+        PatientMutationResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Profil patient créé avec succès" },
+            patient: { $ref: "#/components/schemas/Patient" },
+          },
+          required: ["success", "message", "patient"],
+        },
+        GetPatientsResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            patients: {
+              type: "array",
+              items: {
+                allOf: [
+                  { $ref: "#/components/schemas/Patient" },
+                  { type: "object", properties: { user: { type: "object", properties: { id: { type: "string" }, name: { type: "string" }, email: { type: "string", format: "email" } }, required: ["id", "name", "email"] } } },
+                ],
+              },
+            },
+            pagination: { $ref: "#/components/schemas/PaginationMeta" },
+          },
+          required: ["success", "patients", "pagination"],
+        },
+        DeletePatientResponse: {
+          type: "object",
+          properties: { success: { type: "boolean", example: true }, message: { type: "string", example: "Profil patient supprimé avec succès." } },
+          required: ["success", "message"],
+        },
         Etablissement: {
           type: "object",
           properties: {

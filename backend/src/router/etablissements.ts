@@ -75,7 +75,7 @@ const router = Router();
 router.post(
   "/etablissements",
   requireAuthentication,
-  requireRole("admin"),
+  requireRole("superadmin"),
   validate({ body: createEtablissementSchema }),
   createEtablissement,
 );
@@ -152,7 +152,7 @@ router.post(
 router.put(
   "/etablissements/:id",
   requireAuthentication,
-  requireRole("admin"),
+  requireRole("superadmin"),
   validate({ params: etablissementIdSchema, body: updateEtablissementSchema }),
   updateEtablissement,
 );
@@ -217,7 +217,7 @@ router.put(
 router.delete(
   "/etablissements/:id",
   requireAuthentication,
-  requireRole("admin"),
+  requireRole("superadmin"),
   validate({ params: etablissementIdSchema }),
   deleteEtablissement,
 );
@@ -290,7 +290,7 @@ router.delete(
 router.get(
   "/etablissements",
   requireAuthentication,
-  requireRole("admin", "patient", "medecin"),
+  requireRole("superadmin"),
   validate({ query: etablissementFilterSchema }),
   getEtablissements,
 );
@@ -355,7 +355,7 @@ router.get(
 router.get(
   "/etablissements/:id",
   requireAuthentication,
-  requireRole("admin", "patient", "medecin"),
+  requireRole("superadmin"),
   validate({ params: etablissementIdSchema }),
   getEtablissementById,
 );
